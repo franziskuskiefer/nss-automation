@@ -20,13 +20,13 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 # update CA telemetry hash table
-# cd security/manager/tools/
-# LD_LIBRARY_PATH=../../../obj-x86_64-pc-linux-gnu/dist/bin/ ../../../obj-x86_64-pc-linux-gnu/dist/bin/xpcshell genRootCAHashes.js $PWD/../ssl/RootHashes.inc
-# if [ $? -ne 0 ]; then
-#   echo "======= Updating CA table failed! Manual intervention necessary! ======="
-#   exit 1
-# fi
-# cd -
+cd security/manager/tools/
+LD_LIBRARY_PATH=../../../obj-x86_64-pc-linux-gnu/dist/bin/ ../../../obj-x86_64-pc-linux-gnu/dist/bin/xpcshell genRootCAHashes.js $PWD/../ssl/RootHashes.inc
+if [ $? -ne 0 ]; then
+  echo "======= Updating CA table failed! Manual intervention necessary! ======="
+  exit 1
+fi
+cd -
 # get everything that happened in the meantime
 hg up default-tip
 hg pull -u
