@@ -23,3 +23,9 @@ cd /home/ci/node && make install
 
 su -c "./setup-ci.sh 2" -s /bin/bash ci
 
+# set-up docker-worker systemd
+# local: scp docker-worker.service packet.arm:/etc/systemd/system
+# local: scp docker-worker.conf packet.arm:/etc/
+# systemctl enable docker-worker
+# systemctl start docker-worker
+
