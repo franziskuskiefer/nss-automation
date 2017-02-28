@@ -11,6 +11,13 @@ hg book nss-uplift -f
 # update NSS
 tag=$(hg id https://hg.mozilla.org/projects/nss#default)
 python2 client.py update_nss $tag
+# Check if there's a change in a .def file.
+# We might have to change security/nss.symbols then manually.
+defChanges=$(hg diff . | grep \.def)
+if [ ! -z "$defChanges" -a "$defChanges" != " " ]; then
+  echo "Changes in .def. We might have to change security/nss.symbols then manually";
+  exit 1
+fi
 hg addremove
 hg commit -m "Bug $bug - land NSS $tag, r=me"
 # build
