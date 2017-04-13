@@ -1,7 +1,8 @@
 #!/bin/bash
 
-bug=${1:-1345368}
-dir=${2:-/home/franziskus/Code/automation/mozilla-inbound}
+checkDef=${1:-"check-def"}
+bug=${2:-1345368}
+dir=${3:-/home/franziskus/Code/automation/mozilla-inbound}
 cd $dir
 hg purge .
 hg revert .
@@ -14,12 +15,10 @@ python2 client.py update_nss $tag
 # Check if there's a change in a .def file.
 # We might have to change security/nss.symbols then manually.
 defChanges=$(hg diff . | grep "\.def")
-if [ ! -z "$defChanges" -a "$defChanges" != " " ]; then
+if [ ! -z "$defChanges" -a "$defChanges" != " " -a "$checkDef" == "check-def" ]; then
   echo "Changes in .def. We might have to change security/nss.symbols then manually";
   exit 1
 fi
-hg addremove
-hg commit -m "Bug $bug - land NSS $tag, r=me"
 # build
 ./mach build
 if [ $? -ne 0 ]; then
@@ -34,6 +33,8 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 cd -
+hg addremove
+hg commit -m "Bug $bug - land NSS $tag, r=me"
 # get everything that happened in the meantime
 hg up default-tip
 hg pull -u
