@@ -31,15 +31,17 @@ test() {
 }
 
 # Test performance.
-echo "Performance" > ../performance.txt
+echo "AES-GCM Performance" > ../performance.txt
+echo "" >> ../performance.txt
 performance() {
-  echo "$1\n" >> ../performance.txt
-  ../dist/Release/bin/nss encrypt --cipher aes --in arch.iso --out arch.enc --key key --iv iv &> "../$1"
-  ../dist/Release/bin/nss decrypt --cipher aes --in arch.enc --out arch.dec --key key --iv iv &>> "../$1"
+  echo "$1" >> ../performance.txt
+  ../dist/Release/bin/nss encrypt --cipher aes --in arch.iso --out arch.enc --key key --iv iv >> ../performance.txt 2>&1
+  ../dist/Release/bin/nss decrypt --cipher aes --in arch.enc --out arch.dec --key key --iv iv >> ../performance.txt 2>&1
   if ! diff arch.iso arch.dec &> /dev/null; then
     exit 1
   fi
   rm -rf arch.enc arch.dec key iv
+  echo "" >> ../performance.txt
 }
 
 ### Run Tests ###
@@ -78,25 +80,25 @@ export PATH="$PATH:$libPathRelease"
 
 # Regular build (opt).
 ./build.sh --opt -c --disable-tests
-performance "reg"
+performance "regular build"
 
 # Disable hardware AES (opt).
 ./build.sh --opt --disable-hw-aes -c --disable-tests
-performance "d-hw-aes"
+performance "disable-hw-aes"
 
 # Disable hardware GCM (opt).
 ./build.sh --opt --disable-hw-gcm -c --disable-tests
-performance "d-hw-gcm"
+performance "disable-hw-gcm"
 
 # Regular build (32-bit, opt).
 ./build.sh --opt -m32 -c --disable-tests
-performance "x86"
+performance "32-bit build"
 
 # Disable hardware AES (32-bit, opt).
 ./build.sh --opt --disable-hw-aes -c -m32 --disable-tests
-performance "d-hw-aes-x86"
+performance "disable-hw-aes (32-bit)"
 
 # Disable hardware GCM (32-bit, opt).
 ./build.sh --opt --disable-hw-gcm -c -m32 --disable-tests
-performance "d-hw-gcm-x86"
+performance "disable-hw-gcm (32-bit)"
 
