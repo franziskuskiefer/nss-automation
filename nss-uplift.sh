@@ -34,7 +34,7 @@ if [ $? -ne 0 ]; then
 fi
 cd -
 hg addremove
-hg commit -m "Bug $bug - land NSS $tag, r=me"
+hg commit -m "Bug $bug - land NSS $tag UPGRADE_NSS_RELEASE, r=me"
 # get everything that happened in the meantime
 hg up default-tip
 hg pull -u
