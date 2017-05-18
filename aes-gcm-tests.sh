@@ -24,10 +24,19 @@ if [ ! -f "arch.iso" ]; then
   wget franziskuskiefer.de/data/arch.iso
 fi
 
-# Run all tests.
+# Run all aes-gcm tests with the given configuration.
 test() {
-  ../dist/Debug/bin/bltest -T -m aes_gcm -d "$PWD"/cmd/bltest
+  export $1
+  NSS_TESTS=cipher NSS_CYCLES=standard DOMSUF=localdomain "$PWD"/tests/all.sh
   ../dist/Debug/bin/freebl_gtest
+  unset ${1:0:${#1}-2}
+}
+
+run_tests() {
+  test # default config
+  test "NSS_DISABLE_HW_AES=1"
+  test "NSS_DISABLE_PCLMUL=1"
+  test "NSS_DISABLE_AVX=1"
 }
 
 # Test performance.
@@ -35,6 +44,7 @@ echo "AES-GCM Performance" > ../performance.txt
 echo "" >> ../performance.txt
 performance() {
   echo "$1" >> ../performance.txt
+  export $1
   ../dist/Release/bin/nss encrypt --cipher aes --in arch.iso --out arch.enc --key key --iv iv >> ../performance.txt 2>&1
   ../dist/Release/bin/nss decrypt --cipher aes --in arch.enc --out arch.dec --key key --iv iv >> ../performance.txt 2>&1
   if ! diff arch.iso arch.dec &> /dev/null; then
@@ -42,6 +52,14 @@ performance() {
   fi
   rm -rf arch.enc arch.dec key iv
   echo "" >> ../performance.txt
+  unset ${1:0:${#1}-2}
+}
+
+run_performance() {
+  performance "default config" # default config
+  performance "NSS_DISABLE_HW_AES=1"
+  performance "NSS_DISABLE_PCLMUL=1"
+  performance "NSS_DISABLE_AVX=1"
 }
 
 ### Run Tests ###
@@ -52,26 +70,10 @@ export PATH="$PATH:$libPathDebug"
 
 # Regular build.
 ./build.sh --test -c
-test
-
-# Disable hardware AES.
-./build.sh --test --disable-hw-aes -c
-test
-
-# Disable hardware GCM.
-./build.sh --test --disable-hw-gcm -c
-test
+run_tests
 
 # Regular build (32-bit).
 ./build.sh --test -m32 -c
-test
-
-# Disable hardware AES (32-bit).
-./build.sh --test --disable-hw-aes -c -m32
-test
-
-# Disable hardware GCM (32-bit).
-./build.sh --test --disable-hw-gcm -c -m32
 test
 
 export DYLD_LIBRARY_PATH="$libPathRelease"
@@ -80,25 +82,8 @@ export PATH="$PATH:$libPathRelease"
 
 # Regular build (opt).
 ./build.sh --opt -c --disable-tests
-performance "regular build"
-
-# Disable hardware AES (opt).
-./build.sh --opt --disable-hw-aes -c --disable-tests
-performance "disable-hw-aes"
-
-# Disable hardware GCM (opt).
-./build.sh --opt --disable-hw-gcm -c --disable-tests
-performance "disable-hw-gcm"
+run_performance
 
 # Regular build (32-bit, opt).
 ./build.sh --opt -m32 -c --disable-tests
-performance "32-bit build"
-
-# Disable hardware AES (32-bit, opt).
-./build.sh --opt --disable-hw-aes -c -m32 --disable-tests
-performance "disable-hw-aes (32-bit)"
-
-# Disable hardware GCM (32-bit, opt).
-./build.sh --opt --disable-hw-gcm -c -m32 --disable-tests
-performance "disable-hw-gcm (32-bit)"
-
+run_performance
