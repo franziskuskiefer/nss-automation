@@ -8,10 +8,6 @@ WORKDIR /home/worker
 ADD setup.sh /tmp/setup.sh
 RUN bash /tmp/setup.sh
 
-# Add clang-format script (TODO: clone from hg or better get from working copy)
-ADD run_clang_format.sh /home/worker/
-RUN chmod +x /home/worker/run_clang_format.sh
-
 # Change user.
 USER worker
 
@@ -26,9 +22,6 @@ ENV LC_ALL en_US.UTF-8
 ENV HOST localhost
 ENV DOMSUF localdomain
 
-# Set a default command for debugging.
-CMD ["/bin/bash", "--login"]
-
 # Entrypoint.
-ENTRYPOINT ["/home/worker/run_clang_format.sh"]
+ENTRYPOINT ["/home/worker/nss/automation/taskcluster/scripts/run_clang_format.sh"]
 
